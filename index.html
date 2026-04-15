@@ -1,0 +1,222 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>TT Score</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: black;
+  color: white;
+}
+
+#setup {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  gap: 12px;
+}
+
+input, button {
+  padding: 12px;
+  font-size: 16px;
+  width: 220px;
+  border-radius: 8px;
+  border: none;
+}
+
+button {
+  background: #1e90ff;
+  color: white;
+}
+
+#game {
+  display: none;
+  height: 100vh;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  font-size: 14px;
+}
+
+.controls {
+  display: flex;
+  gap: 10px;
+}
+
+.controls button {
+  width: auto;
+  padding: 8px 12px;
+}
+
+.container {
+  display: flex;
+  flex: 1;
+}
+
+.side {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  user-select: none;
+}
+
+#left { background: #1e90ff; }
+#right { background: #ff6347; }
+
+.name {
+  font-size: 20px;
+}
+
+.score {
+  font-size: 100px;
+  font-weight: bold;
+}
+
+.serving {
+  margin-top: 10px;
+  font-size: 16px;
+}
+
+.winner {
+  text-align: center;
+  font-size: 22px;
+  padding: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<div id="setup">
+  <h2>Enter Players</h2>
+  <input id="p1" placeholder="Player 1">
+  <input id="p2" placeholder="Player 2">
+  <button onclick="startGame()">Start Game</button>
+</div>
+
+<div id="game">
+  <div class="topbar">
+    <div class="controls">
+      <button onclick="undo()">Undo</button>
+      <button onclick="resetGame()">Reset</button>
+    </div>
+    <div id="winnerText"></div>
+  </div>
+
+  <div class="container">
+    <div id="left" class="side" onclick="addPoint(1)">
+      <div class="name" id="name1"></div>
+      <div class="score" id="score1">0</div>
+      <div class="serving" id="serve1"></div>
+    </div>
+
+    <div id="right" class="side" onclick="addPoint(2)">
+      <div class="name" id="name2"></div>
+      <div class="score" id="score2">0</div>
+      <div class="serving" id="serve2"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+let score1 = 0, score2 = 0;
+let history = [];
+let server = 1;
+
+function startGame() {
+  const p1 = document.getElementById("p1").value || "Player 1";
+  const p2 = document.getElementById("p2").value || "Player 2";
+
+  document.getElementById("name1").innerText = p1;
+  document.getElementById("name2").innerText = p2;
+
+  document.getElementById("setup").style.display = "none";
+  document.getElementById("game").style.display = "flex";
+
+  updateServe();
+}
+
+function addPoint(player) {
+  if (isGameOver()) return;
+
+  history.push({score1, score2, server});
+
+  if (player === 1) score1++;
+  else score2++;
+
+  updateScores();
+  updateServe();
+  checkWinner();
+}
+
+function updateScores() {
+  document.getElementById("score1").innerText = score1;
+  document.getElementById("score2").innerText = score2;
+}
+
+function isGameOver() {
+  return (
+    (score1 >= 11 || score2 >= 11) &&
+    Math.abs(score1 - score2) >= 2
+  );
+}
+
+function checkWinner() {
+  if (isGameOver()) {
+    const winner = score1 > score2 ? "name1" : "name2";
+    document.getElementById("winnerText").innerText =
+      document.getElementById(winner).innerText + " Wins!";
+  }
+}
+
+function undo() {
+  if (history.length === 0) return;
+  const prev = history.pop();
+  score1 = prev.score1;
+  score2 = prev.score2;
+  server = prev.server;
+  document.getElementById("winnerText").innerText = "";
+  updateScores();
+  updateServe();
+}
+
+function resetGame() {
+  score1 = 0;
+  score2 = 0;
+  history = [];
+  server = 1;
+  document.getElementById("winnerText").innerText = "";
+  updateScores();
+  updateServe();
+}
+
+function updateServe() {
+  const total = score1 + score2;
+
+  if (score1 >= 10 && score2 >= 10) {
+    server = total % 2 === 0 ? 1 : 2;
+  } else {
+    server = Math.floor(total / 2) % 2 === 0 ? 1 : 2;
+  }
+
+  document.getElementById("serve1").innerText =
+    server === 1 ? "Serving" : "";
+  document.getElementById("serve2").innerText =
+    server === 2 ? "Serving" : "";
+}
+</script>
+
+</body>
+</html>
